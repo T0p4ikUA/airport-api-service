@@ -1,13 +1,18 @@
 from django.conf import settings
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 
 class Crew(models.Model):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
 
-    def __str__(self):
+    @property
+    def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+    def __str__(self):
+        return self.full_name
 
 
 class Airport(models.Model):
@@ -88,6 +93,8 @@ class Order(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="orders",
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
@@ -106,7 +113,33 @@ class Ticket(models.Model):
         Order,
         on_delete=models.CASCADE,
         related_name="tickets",
+        null=True,
+        blank=True,
     )
+
+    @staticmethod
+    def validate_ticket(row, seat, airplane, error_to_raise):
+        for tkt_value, tkt_range, error_msg in [
+            (row, airplane.rows, f"Row number must be between 1 and {airplane.rows}"),
+            (seat, airplane.seats_in_row, f"Seat number must be between 1 and {airplane.seats_in_row}"),
+        ]:
+            if not(1 <= tkt_value <= tkt_range):
+                raise error_to_raise({
+                    "row" if tkt_value == row else "seat": error_msg
+                })
+
+    def clean(self):
+        super().clean()
+        Ticket.validate_ticket(
+            self.row,
+            self.seat,
+            self.flight.airplane,
+            ValidationError
+        )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ("flight", "row", "seat")

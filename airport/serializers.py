@@ -133,13 +133,35 @@ class TicketSerializer(serializers.ModelSerializer):
         )
         return data
 
+    def create(self, validated_data):
+        if "order" not in validated_data or not validated_data["order"]:
+            request = self.context.get("request")
+            user = request.user if request else None
+            order = Order.objects.create(user=user)
+            validated_data["order"] = order
+
+        return super().create(validated_data)
+
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight")
+        extra_kwargs = {"order": {"required": False, "allow_null": True}}
+
+
+class TicketFlightSerializer(serializers.ModelSerializer):
+    route = serializers.StringRelatedField(read_only=True)
+    airplane_name = serializers.CharField(
+        source="airplane.name",
+        read_only=True,
+    )
+
+    class Meta:
+        model = Flight
+        fields = ("id", "route", "airplane_name", "departure_time")
 
 
 class TicketListSerializer(TicketSerializer):
-    flight = FlightListSerializer(many=False, read_only=True)
+    flight = TicketFlightSerializer(many=False, read_only=True)
 
     class Meta:
         model = Ticket
@@ -162,9 +184,11 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ("id", "tickets", "created_at")
 
     def create(self, validated_data):
+        tickets_data = validated_data.pop("tickets")
+        request = self.context.get("request")
+        user = request.user if request and request.user.is_authenticated else None
         with transaction.atomic():
-            tickets_data = validated_data.pop("tickets")
-            order = Order.objects.create(**validated_data)
+            order = Order.objects.create(user=user, **validated_data)
             for ticket_data in tickets_data:
                 Ticket.objects.create(order=order, **ticket_data)
             return order
@@ -172,3 +196,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class OrderListSerializer(OrderSerializer):
     tickets = TicketListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ("id", "tickets", "created_at")
