@@ -185,10 +185,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tickets_data = validated_data.pop("tickets")
-        request = self.context.get("request")
-        user = request.user if request and request.user.is_authenticated else None
         with transaction.atomic():
-            order = Order.objects.create(user=user, **validated_data)
+            order = Order.objects.create(**validated_data)
             for ticket_data in tickets_data:
                 Ticket.objects.create(order=order, **ticket_data)
             return order
