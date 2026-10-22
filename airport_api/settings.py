@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "debug_toolbar",
     "airport",
+    "user"
 ]
 
 MIDDLEWARE = [
@@ -121,6 +122,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
+
+AUTH_USER_MODEL = "user.User"
 
 LANGUAGE_CODE = "en-us"
 
