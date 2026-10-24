@@ -1,0 +1,13 @@
+[flake8]
+inline-quotes = double
+exclude =
+    vevn/
+    venv/
+    .git/
+    __pycache__/
+    */migrations/*
+    media/
+    mediafiles/
+    staticfiles/
+per-file-ignores =
+    airport_api/settings.py: E501

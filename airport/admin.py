@@ -11,6 +11,7 @@ from airport.models import (
     Ticket,
 )
 
+
 @admin.register(Airport)
 class AirportAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "closest_big_city")
@@ -19,7 +20,14 @@ class AirportAdmin(admin.ModelAdmin):
 
 @admin.register(Airplane)
 class AirplaneAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "rows", "seats_in_row", "capacity", "airplane_type")
+    list_display = (
+        "id",
+        "name",
+        "rows",
+        "seats_in_row",
+        "capacity",
+        "airplane_type"
+    )
     list_filter = ("airplane_type",)
     search_fields = ("name",)
 
@@ -38,7 +46,13 @@ class CrewAdmin(admin.ModelAdmin):
 
 @admin.register(Flight)
 class FlightAdmin(admin.ModelAdmin):
-    list_display = ("id", "route", "airplane", "departure_time", "arrival_time")
+    list_display = (
+        "id",
+        "route",
+        "airplane",
+        "departure_time",
+        "arrival_time"
+    )
     list_filter = ("departure_time", "route")
     filter_horizontal = ("crew",)
 
@@ -66,4 +80,7 @@ class RouteAdmin(admin.ModelAdmin):
 class TicketAdmin(admin.ModelAdmin):
     list_display = ("id", "flight", "row", "seat", "order")
     list_filter = ("flight",)
-    search_fields = ("flight__route__source__name", "flight__route__destination__name")
+    search_fields = (
+        "flight__route__source__name",
+        "flight__route__destination__name"
+    )

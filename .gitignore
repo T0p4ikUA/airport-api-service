@@ -4,9 +4,13 @@
 .env
 .DS_Store
 venv/
+vevn/
 .pytest_cache/
+.coverage
+htmlcov/
+*.log
 **__pycache__/
 **db.sqlite3
-media
+media/
 */migrations/*.py
 !*/migrations/__init__.py
