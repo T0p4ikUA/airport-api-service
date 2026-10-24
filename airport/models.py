@@ -37,7 +37,8 @@ class Route(models.Model):
     distance = models.IntegerField()
 
     def __str__(self):
-        return f"{self.source} -> {self.destination} distance: {self.distance}km"
+        return (f"{self.source} -> {self.destination}"
+                f" distance: {self.distance}km")
 
 
 class AirplaneType(models.Model):
@@ -120,21 +121,24 @@ class Ticket(models.Model):
     @staticmethod
     def validate_ticket(row, seat, airplane, error_to_raise):
         for tkt_value, tkt_range, error_msg in [
-            (row, airplane.rows, f"Row number must be between 1 and {airplane.rows}"),
-            (seat, airplane.seats_in_row, f"Seat number must be between 1 and {airplane.seats_in_row}"),
+            (row,
+             airplane.rows,
+             f"Row number must be between 1 and {airplane.rows}"),
+            (
+                seat,
+                airplane.seats_in_row,
+                f"Seat number must be between 1 and {airplane.seats_in_row}",
+            ),
         ]:
-            if not(1 <= tkt_value <= tkt_range):
-                raise error_to_raise({
-                    "row" if tkt_value == row else "seat": error_msg
-                })
+            if not (1 <= tkt_value <= tkt_range):
+                raise error_to_raise(
+                    {"row" if tkt_value == row else "seat": error_msg}
+                )
 
     def clean(self):
         super().clean()
         Ticket.validate_ticket(
-            self.row,
-            self.seat,
-            self.flight.airplane,
-            ValidationError
+            self.row, self.seat, self.flight.airplane, ValidationError
         )
 
     def save(self, *args, **kwargs):

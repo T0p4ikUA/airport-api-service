@@ -29,15 +29,31 @@ class AirplaneTypeSerializer(serializers.ModelSerializer):
 class AirplaneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airplane
-        fields = ("id", "name", "rows", "seats_in_row", "capacity", "airplane_type")
+        fields = (
+            "id",
+            "name",
+            "rows",
+            "seats_in_row",
+            "capacity",
+            "airplane_type"
+        )
 
 
 class AirplaneListSerializer(AirplaneSerializer):
-    airplane_type_name = serializers.CharField(source="airplane_type.name", read_only=True)
+    airplane_type_name = serializers.CharField(
+        source="airplane_type.name", read_only=True
+    )
 
     class Meta:
         model = Airplane
-        fields = ("id", "name", "rows", "seats_in_row", "capacity", "airplane_type_name")
+        fields = (
+            "id",
+            "name",
+            "rows",
+            "seats_in_row",
+            "capacity",
+            "airplane_type_name",
+        )
 
 
 class CrewSerializer(serializers.ModelSerializer):
@@ -73,13 +89,25 @@ class RouteDetailSerializer(RouteSerializer):
 class FlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
-        fields = ("id", "route", "airplane", "departure_time", "arrival_time", "crew")
+        fields = (
+            "id",
+            "route",
+            "airplane",
+            "departure_time",
+            "arrival_time",
+            "crew"
+        )
 
 
 class FlightListSerializer(FlightSerializer):
     route = RouteListSerializer(many=False, read_only=True)
-    airplane_name = serializers.CharField(source="airplane.name", read_only=True)
-    airplane_capacity = serializers.IntegerField(source="airplane.capacity", read_only=True)
+    airplane_name = serializers.CharField(
+        source="airplane.name",
+        read_only=True
+    )
+    airplane_capacity = serializers.IntegerField(
+        source="airplane.capacity", read_only=True
+    )
     tickets_available = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -106,7 +134,9 @@ class FlightDetailSerializer(FlightSerializer):
     airplane = AirplaneListSerializer(many=False, read_only=True)
     crew = CrewSerializer(many=True, read_only=True)
     taken_places = TicketSeatsSerializer(
-        source="tickets", many=True, read_only=True
+        source="tickets",
+        many=True,
+        read_only=True
     )
 
     class Meta:

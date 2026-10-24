@@ -160,7 +160,10 @@ class AuthenticatedAirportAndExtrasApiTests(TestCase):
 
         res = self.client.get(TICKET_URL)
         tickets = Ticket.objects.select_related(
-            "flight__route__source", "flight__route__destination", "flight__airplane", "order"
+            "flight__route__source",
+            "flight__route__destination",
+            "flight__airplane",
+            "order",
         )
         serializer = TicketListSerializer(tickets, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)

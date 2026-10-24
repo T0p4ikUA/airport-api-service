@@ -72,14 +72,11 @@ class RouteViewSet(viewsets.ModelViewSet):
 
 
 class FlightViewSet(viewsets.ModelViewSet):
-    queryset = (
-        Flight.objects.select_related(
-            "route__source",
-            "route__destination",
-            "airplane__airplane_type",
-        )
-        .prefetch_related("crew")
-    )
+    queryset = Flight.objects.select_related(
+        "route__source",
+        "route__destination",
+        "airplane__airplane_type",
+    ).prefetch_related("crew")
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
