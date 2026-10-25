@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from rest_framework.exceptions import ValidationError
 
@@ -36,6 +37,16 @@ class Route(models.Model):
     )
     distance = models.IntegerField()
 
+    class Meta:
+        unique_together = ("source", "destination")
+
+    def clean(self):
+        super().clean()
+        if self.source == self.destination:
+            raise ValidationError(
+                "Airport of destination and source cannot be the same"
+            )
+
     def __str__(self):
         return (f"{self.source} -> {self.destination}"
                 f" distance: {self.distance}km")
@@ -50,8 +61,8 @@ class AirplaneType(models.Model):
 
 class Airplane(models.Model):
     name = models.CharField(max_length=255)
-    rows = models.IntegerField()
-    seats_in_row = models.IntegerField()
+    rows = models.IntegerField(validators=[MinValueValidator(1)])
+    seats_in_row = models.IntegerField(validators=[MinValueValidator(1)])
     airplane_type = models.ForeignKey(
         AirplaneType,
         on_delete=models.CASCADE,
@@ -84,6 +95,16 @@ class Flight(models.Model):
         related_name="flights",
     )
 
+    def clean(self):
+        super().clean()
+        if self.arrival_time <= self.departure_time:
+            raise ValidationError({
+                "arrival_time": (
+                    "arrival_time must be later "
+                    "than departure_time"
+                )
+            })
+
     def __str__(self):
         return f"{self.route} | departure: {self.departure_time}"
 
@@ -103,8 +124,8 @@ class Order(models.Model):
 
 
 class Ticket(models.Model):
-    row = models.IntegerField()
-    seat = models.IntegerField()
+    row = models.IntegerField(validators=[MinValueValidator(1)])
+    seat = models.IntegerField(validators=[MinValueValidator(1)])
     flight = models.ForeignKey(
         Flight,
         on_delete=models.CASCADE,
