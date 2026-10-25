@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -174,7 +174,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
-        fields = ("id", "row", "seat", "flight")
+        fields = ("id", "row", "seat", "flight", "order")
         extra_kwargs = {"order": {"required": False, "allow_null": True}}
 
 
@@ -215,11 +215,16 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tickets_data = validated_data.pop("tickets")
-        with transaction.atomic():
-            order = Order.objects.create(**validated_data)
-            for ticket_data in tickets_data:
-                Ticket.objects.create(order=order, **ticket_data)
-            return order
+        try:
+            with transaction.atomic():
+                order = Order.objects.create(**validated_data)
+                for ticket_data in tickets_data:
+                    Ticket.objects.create(order=order, **ticket_data)
+                return order
+        except IntegrityError:
+            raise ValidationError(
+                {"detail": "this place have already occupied"}
+            )
 
 
 class OrderListSerializer(OrderSerializer):

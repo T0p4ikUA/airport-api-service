@@ -116,6 +116,9 @@ class TicketViewSet(viewsets.ModelViewSet):
             return TicketDetailSerializer
         return TicketSerializer
 
+    def get_queryset(self):
+        return Ticket.objects.filter(order__user=self.request.user)
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.prefetch_related(
