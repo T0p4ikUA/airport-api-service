@@ -170,7 +170,18 @@ class TicketSerializer(serializers.ModelSerializer):
             order = Order.objects.create(user=user)
             validated_data["order"] = order
 
-        return super().create(validated_data)
+        try:
+            with transaction.atomic():
+                return super().create(validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError(
+                {
+                    "detail": (
+                        "This seat is already booked for this flight"
+                        " or invalid data provided."
+                    )
+                }
+            )
 
     class Meta:
         model = Ticket
