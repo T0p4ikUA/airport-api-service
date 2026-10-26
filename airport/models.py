@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Q, F
 from rest_framework.exceptions import ValidationError
 
 
@@ -35,10 +36,20 @@ class Route(models.Model):
         on_delete=models.CASCADE,
         related_name="routes_as_destination",
     )
-    distance = models.IntegerField()
+    distance = models.IntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
         unique_together = ("source", "destination")
+        constraints = [
+            models.CheckConstraint(
+                check=Q(distance__gt=0),
+                name="distance_positive"
+            ),
+            models.CheckConstraint(
+                check=~Q(source_id=F("destination_id")),
+                name="source_not_destination"
+            ),
+        ]
 
     def clean(self):
         super().clean()
@@ -69,6 +80,18 @@ class Airplane(models.Model):
         related_name="airplanes",
     )
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(rows__gt=0),
+                name="rows_positive"
+            ),
+            models.CheckConstraint(
+                check=Q(seats_in_row__gt=0),
+                name="seats_in_row_positive"
+            ),
+        ]
+
     @property
     def capacity(self) -> int:
         return self.rows * self.seats_in_row
@@ -94,6 +117,14 @@ class Flight(models.Model):
         Crew,
         related_name="flights",
     )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(arrival_time__gt=F("departure_time")),
+                name="arrival_after_departure"
+            ),
+        ]
 
     def clean(self):
         super().clean()
